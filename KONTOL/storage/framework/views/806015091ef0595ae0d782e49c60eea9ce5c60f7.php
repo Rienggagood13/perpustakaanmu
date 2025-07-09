@@ -1,0 +1,192 @@
+
+
+<?php $__env->startSection('content'); ?>
+        <!-- Hero Section Begin -->
+        <section class="hero">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="hero__item set-bg" data-setbg="<?php echo e(asset('/template/img/hero/banner.jpg')); ?>">
+                            <div class="hero__text">
+                                <h2>SAYURAN <br />100% FRESH</h2>
+                                <p>Tersedia Pengiriman Berbagai Wilayah Sumsel</p>
+                                <a href="<?php echo e(route('shop')); ?>" class="primary-btn px-5">MULAI BELANJA</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Hero Section End -->
+    
+        <!-- Featured Section Begin -->
+        <section class="featured spad">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="section-title">
+                            <h2>Sayuran Kasep Klontong</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <?php $__currentLoopData = $produk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <div class="col-lg-3 col-md-4 col-sm-6 mix oranges fresh-meat">
+                            <div class="featured__item">
+                                <div class="featured__item__pic set-bg shadow-sm p-3 mb-5 bg-white rounded" data-setbg="<?php echo e(asset('storage/'. $item->foto_produk)); ?>">
+                                    <ul class="featured__item__pic__hover">
+                                        <?php if(!auth()->check()): ?>
+                                            <li><a href="<?php echo e(route('login')); ?>"><i class="fa fa-shopping-cart"></i></a></li>
+                                        <?php else: ?>  
+                                            <?php if(auth()->user()->email_verified_at == null): ?>
+                                                <li><a href="<?php echo e(route('verification.notice')); ?>"><i class="fa fa-shopping-cart"></i></a></li>
+                                            <?php else: ?>
+                                            <li>
+                                                <a href="javascript:;" data-id="<?php echo e($item->id); ?>" data-toggle="modal" data-target="#modalKeranjang" class="modal_keranjang">
+                                                    <i class="fa fa-shopping-cart"></i>
+                                                </a>
+                                            </li>
+                                            <?php endif; ?>
+                                           
+                                        <?php endif; ?>
+                                    </ul>
+                                </div>
+                                <div class="featured__item__text">
+                                    <h6 class="text-capitalize"><a href="<?php echo e(url('/shop/detail-produk/'. $item->id)); ?>"><?php echo e($item->nama_produk); ?></a></h6>
+                                    <h5>Rp.<?php echo e(number_format($item->harga_produk, 0, ',', '.')); ?></h5>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </div>
+            </div>
+        </section>
+
+
+        <div class="modal fade" id="modalKeranjang" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Detail Ringkas Produk</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="row">
+                    <div class="col-lg-6">
+                        <img src="" alt="" id="foto_produk" width="100%" cla>
+                    </div>
+                    <div class="col-lg-6">
+                        <form action="" method="POST" id="tambah_produk">
+                            <?php echo csrf_field(); ?>
+                            <div class="product__details__text mt-3">
+                                <h3 class="text-capitalize" id="nama_produk">Nama Produk</h3>
+                                <div class="product__details__price" style="font-size: 20px !important;" id="harga_produk"></div>
+                                <p class="text-justify pr-5" id="desc_produk"></p>
+                                <div class="product__details__quantity">
+                                    <div class="quantity">
+                                        <div class="pro-qty" id="pro-qty">
+                                            <input type="text" value="1" name="qty" autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" id="keranjang" class="primary-btn border-0"><i class="fa fa-shopping-cart"></i></button>
+                                <ul class="mt-n3">
+                                    <li><b>Stock</b> <span>Tersedia</span></li>
+                                    <li><b>Store</b> <span class="text-capitalize" id="toko"></span></li>
+                                </ul>
+                            </div>
+                        </form>
+                        
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- Featured Section End -->
+        <script>
+            $(document).on("click", "#keranjang", function(e) {
+                e.preventDefault();
+                var form = $(this).parents('form');
+                var urlForm = $(this).parents('form').attr('action');
+                // var idProduk = urlForm.split(",");
+                var idProduk = urlForm.split("/");
+                idProduk = idProduk[3];
+                var url = "/shop/cek_produk";
+                var token = $("meta[name='csrf-token']").attr("content");
+                $.ajax({
+                    type: "post",
+                    url: url,
+                    dataType: "html",
+                    data: {
+                        "_token": token,
+                        "idProduk" : idProduk
+                    },
+                    success: function(msg) {
+                        let tmp = JSON.parse(msg);
+                        // alert(tmp.change);
+                        if(tmp.change == 1){
+                            Swal.fire({
+                                title: 'Warning!',
+                                text: "Anda memiliki item dari toko lain dalam keranjang, ganti item dari toko ini?",
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: '#539165',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'Ya, Pesan Item Ini!'
+                                }).then((result) => {
+                                if (result.isConfirmed) {
+                                    form.submit();
+                                }
+                            })
+                        }else{
+                            form.submit();
+                        }
+                    },error: function(){
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Kesalahan Akun Privilege',
+                            icon: 'error'
+                        });
+                    }
+                });
+            });
+    
+            $(document).on("click", ".modal_keranjang", function() {
+                var idProduk = $(this).data('id');
+                var url = "/shop/modal/"+idProduk;
+                var urlDetail = "/shop/detail-produk/"+idProduk;
+                var urlTambah ="/shop/tambah_keranjang/"+idProduk;
+                var gambar = 'storage/';
+                $.ajax({
+                    type: "get",
+                    url: url,
+                    dataType: "html",
+                    success: function(msg) {
+                        let tmp = JSON.parse(msg);
+                        $(".modal-body #nama_produk").html(tmp.nama_produk);
+                        $(".modal-body #desc_produk").html(tmp.desc_produk);
+                        $(".modal-body #harga_produk").html(tmp.harga_produk);
+                        $(".modal-body #toko").html(tmp.toko);
+                        $(".modal-body #foto_produk").attr("src", tmp.foto_produk);
+                        $(".modal-body .see-more").attr("href", urlDetail);
+                        $(".modal-body #tambah_produk").attr("action", urlTambah);
+                        
+                    },error: function(){
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Error Get Data Produk',
+                            icon: 'error'
+                        });
+                    }
+                });
+            });
+        </script>
+
+        <?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.shop', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\klontong_kasep\resources\views/main/home.blade.php ENDPATH**/ ?>
